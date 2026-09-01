@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Editoriale — Pratiche e Formazione</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#161920;--surface2:#1e2230;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#e8eaf0;--text2:#8a8fa8;--text3:#555a72;
+  --accent:#3d6fff;--accent2:#2952d9;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--teal:#14b8a6;--purple:#a855f7;
+  --claude:#cc785c;--gemini:#4285f4;
+  --r:10px;--rl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:234px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.logo-name{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.02em}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:12px 20px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.nav-item.active{color:var(--text);border-left-color:var(--accent);background:rgba(61,111,255,.06)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s}
+.nav-dot.done{background:var(--green)}
+.sidebar-footer{margin-top:auto;padding:14px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+.status-pill{display:flex;align-items:center;gap:7px;font-size:11px;padding:5px 9px;border-radius:20px;border:1px solid var(--border2);color:var(--text3)}
+.status-pill .dot{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s}
+.status-pill .dot.ok{background:var(--green)}
+.status-pill .dot.warn{background:var(--amber)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:32px;max-width:920px}
+.panel{display:none}.panel.active{display:block}
+.panel-header{margin-bottom:24px}
+.panel-title{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.panel-sub{font-size:13px;color:var(--text2);margin-top:4px}
+
+/* AI ENGINE STATUS BANNER */
+.ai-banner{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.ai-chip{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-weight:500;color:var(--text3);transition:all .2s}
+.ai-chip.active-claude{border-color:rgba(204,120,92,.4);background:rgba(204,120,92,.07);color:var(--claude)}
+.ai-chip.active-gemini{border-color:rgba(66,133,244,.4);background:rgba(66,133,244,.07);color:var(--gemini)}
+.ai-chip .ai-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.ai-chip.both{border-color:rgba(161,77,218,.4);background:rgba(161,77,218,.06);color:var(--purple)}
+
+/* INT GRID */
+.int-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:22px}
+.int-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;transition:border-color .2s}
+.int-card.connected{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.03)}
+.int-card.partial{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.03)}
+.int-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.int-name{font-size:12px;font-weight:600;color:var(--text)}
+.int-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.int-badge.auto{background:rgba(34,197,94,.15);color:var(--green)}
+.int-badge.partial{background:rgba(245,158,11,.15);color:var(--amber)}
+.int-badge.off{background:rgba(255,255,255,.05);color:var(--text3)}
+.int-desc{font-size:11px;color:var(--text3);line-height:1.45}
+
+/* SETTINGS */
+.settings-section{margin-bottom:26px}
+.section-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.section-hd-title{font-size:14px;font-weight:600;color:var(--text)}
+.shd-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500}
+.shd-badge.optional{background:rgba(255,255,255,.07);color:var(--text3)}
+.shd-badge.claude-badge{background:rgba(204,120,92,.15);color:var(--claude)}
+.shd-badge.gemini-badge{background:rgba(66,133,244,.15);color:var(--gemini)}
+.field-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:15px 17px;margin-bottom:9px}
+.field-label{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.field-row{display:flex;gap:8px;align-items:center}
+.field-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--accent)}
+.field-input::placeholder{color:var(--text3)}
+.field-hint{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.field-hint a{color:var(--accent);text-decoration:none}
+.test-btn{padding:7px 13px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);color:var(--text2);font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.test-btn:hover{color:var(--text);background:var(--surface2)}
+.save-btn{padding:10px 24px;background:var(--accent);border:none;border-radius:var(--r);color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;margin-top:4px}
+.save-btn:hover{background:var(--accent2)}
+.test-result{font-size:11px;margin-top:6px;padding:5px 10px;border-radius:var(--r)}
+.test-result.ok{background:rgba(34,197,94,.08);color:var(--green)}
+.test-result.err{background:rgba(239,68,68,.08);color:var(--red)}
+.test-result.info{background:rgba(61,111,255,.08);color:#7aa3ff}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;margin-bottom:12px;transition:border-color .15s}
+.card:hover{border-color:var(--border2)}
+.card.selected{border-color:var(--accent);background:rgba(61,111,255,.04)}
+.card.done{border-color:rgba(34,197,94,.3)}
+
+/* DUAL RESPONSE */
+.dual-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.dual-col{border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;background:var(--bg)}
+.dual-col.col-claude{border-color:rgba(204,120,92,.2)}
+.dual-col.col-gemini{border-color:rgba(66,133,244,.2)}
+.dual-col-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.dual-col-name{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.col-claude .dual-col-name{color:var(--claude)}
+.col-gemini .dual-col-name{color:var(--gemini)}
+.dual-col-body{font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap;max-height:260px;overflow-y:auto;font-family:'IBM Plex Mono',monospace}
+
+/* BADGE */
+.badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;margin:0 3px 3px 0}
+.b-blue{background:rgba(61,111,255,.15);color:#7aa3ff}
+.b-teal{background:rgba(20,184,166,.15);color:#4dd9cc}
+.b-amber{background:rgba(245,158,11,.15);color:#fbbf24}
+.b-purple{background:rgba(168,85,247,.15);color:#c084fc}
+.b-green{background:rgba(34,197,94,.15);color:#4ade80}
+.b-red{background:rgba(239,68,68,.15);color:#f87171}
+.b-claude{background:rgba(204,120,92,.15);color:var(--claude)}
+.b-gemini{background:rgba(66,133,244,.15);color:var(--gemini)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-family:'Sora',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:transparent;color:var(--text2)}
+.btn:hover{color:var(--text);background:var(--surface2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-sm{padding:4px 11px;font-size:11px}
+.btn-green{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:var(--green)}
+.btn-green:hover{background:rgba(34,197,94,.2)}
+.btn-amber{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--amber)}
+.btn-amber:hover{background:rgba(245,158,11,.2)}
+.btn-claude{background:rgba(204,120,92,.1);border-color:rgba(204,120,92,.3);color:var(--claude)}
+.btn-gemini{background:rgba(66,133,244,.1);border-color:rgba(66,133,244,.3);color:var(--gemini)}
+
+/* ACTION AREAS */
+.action-area{border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-top:10px}
+.action-area.manual-mode{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.03)}
+.action-mode-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;color:var(--amber)}
+.manual-copy{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap;max-height:220px;overflow-y:auto;font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+.steps-manual{font-size:12px;color:var(--text2);line-height:1.8}
+.steps-manual li{margin-left:16px;margin-bottom:2px}
+
+/* GEN BAR */
+.gen-bar{display:flex;gap:10px;align-items:center;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:12px 16px;flex-wrap:wrap}
+.gen-bar input{flex:1;min-width:200px;background:transparent;border:none;outline:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px}
+.gen-bar input::placeholder{color:var(--text3)}
+
+/* IDEA */
+.idea-row{display:flex;gap:12px;align-items:flex-start}
+.idea-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.idea-check.checked{background:var(--accent);border-color:var(--accent)}
+.idea-check.checked::after{content:'';display:block;width:9px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.idea-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.idea-brief{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:8px}
+.idea-kw{font-size:11px;color:var(--text3)}
+.idea-kw span{color:var(--teal);font-family:'IBM Plex Mono',monospace}
+
+/* SEL BAR */
+.sel-bar{background:rgba(61,111,255,.08);border:1px solid rgba(61,111,255,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:#7aa3ff;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* SEO */
+.kw-table{width:100%;border-collapse:collapse}
+.kw-table td{padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.kw-table tr:last-child td{border-bottom:none}
+.diff-bar{display:inline-block;width:44px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;vertical-align:middle;margin-left:5px}
+.diff-fill{height:100%;border-radius:2px}
+.meta-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--text2);margin-bottom:7px}
+.meta-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+
+/* IG */
+.ig-tab{padding:4px 11px;border-radius:20px;font-size:11px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer}
+.ig-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.caption-text{font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap}
+.caption-hash{font-size:11px;color:#7aa3ff;margin-top:6px;line-height:1.9;font-family:'IBM Plex Mono',monospace}
+
+/* IMG */
+.img-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.img-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;font-weight:500}
+.img-frame{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:#111}
+.img-frame svg{display:block;width:100%;height:auto}
+
+/* LOADING */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading-msg{font-size:12px;color:var(--text3);padding:10px 0;display:flex;align-items:center}
+
+/* SOURCE TAG */
+.src-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;margin-right:6px;vertical-align:middle}
+.src-claude{background:rgba(204,120,92,.15);color:var(--claude)}
+.src-gemini{background:rgba(66,133,244,.15);color:var(--gemini)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-name">Pratiche e Formazione</div>
+    <div class="logo-sub">Studio editoriale AI</div>
+  </div>
+  <div class="nav-section">Configurazione</div>
+  <div class="nav-item active" onclick="goPanel('settings')" id="nav-settings">
+    <span class="nav-dot" id="dot-settings"></span>
+    <span class="nav-label">Impostazioni</span>
+  </div>
+  <div class="nav-section">Flusso editoriale</div>
+  <div class="nav-item" onclick="goPanel('idee')" id="nav-idee">
+    <span class="nav-dot" id="dot-idee"></span>
+    <span class="nav-label">1 — Idee</span>
+  </div>
+  <div class="nav-item" onclick="goPanel('articolo')" id="nav-articolo">
+    <span class="nav-dot" id="dot-articolo"></span>
+    <span class="nav-label">2 — Articolo</span>
+  </div>
+  <div class="nav-item" onclick="goPanel('seo')" id="nav-seo">
+    <span class="nav-dot" id="dot-seo"></span>
+    <span class="nav-label">3 — SEO</span>
+  </div>
+  <div class="nav-item" onclick="goPanel('instagram')" id="nav-instagram">
+    <span class="nav-dot" id="dot-instagram"></span>
+    <span class="nav-label">4 — Instagram</span>
+  </div>
+  <div class="nav-item" onclick="goPanel('immagini')" id="nav-immagini">
+    <span class="nav-dot" id="dot-immagini"></span>
+    <span class="nav-label">5 — Immagini</span>
+  </div>
+  <div class="sidebar-footer">
+    <div class="status-pill"><span class="dot" id="dp-claude"></span><span id="lp-claude">Claude — manuale</span></div>
+    <div class="status-pill"><span class="dot" id="dp-gemini"></span><span id="lp-gemini">Gemini — manuale</span></div>
+    <div class="status-pill"><span class="dot" id="dp-wp"></span><span id="lp-wp">WordPress — manuale</span></div>
+    <div class="status-pill"><span class="dot" id="dp-ig"></span><span id="lp-ig">Instagram — manuale</span></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ════ SETTINGS ════ -->
+<div id="panel-settings" class="panel active">
+  <div class="panel-header">
+    <div class="panel-title">Configurazione integrazioni</div>
+    <div class="panel-sub">Tutte le sezioni sono opzionali. Configura solo quello che usi — il resto funziona in modalità manuale.</div>
+  </div>
+
+  <!-- STATUS OVERVIEW -->
+  <div class="int-grid" id="intGrid">
+    <div class="int-card" id="icard-claude">
+      <div class="int-header"><span class="int-name">Claude AI</span><span class="int-badge off" id="ibadge-claude">Manuale</span></div>
+      <div class="int-desc" id="idesc-claude">API Anthropic non configurata</div>
+    </div>
+    <div class="int-card" id="icard-gemini">
+      <div class="int-header"><span class="int-name">Gemini AI</span><span class="int-badge off" id="ibadge-gemini">Manuale</span></div>
+      <div class="int-desc" id="idesc-gemini">API Google non configurata</div>
+    </div>
+    <div class="int-card" id="icard-wp">
+      <div class="int-header"><span class="int-name">WordPress</span><span class="int-badge off" id="ibadge-wp">Manuale</span></div>
+      <div class="int-desc" id="idesc-wp">Credenziali non configurate</div>
+    </div>
+    <div class="int-card" id="icard-ig">
+      <div class="int-header"><span class="int-name">Instagram</span><span class="int-badge off" id="ibadge-ig">Manuale</span></div>
+      <div class="int-desc" id="idesc-ig">Token non configurato</div>
+    </div>
+  </div>
+
+  <!-- CLAUDE -->
+  <div class="settings-section">
+    <div class="section-hd">
+      <span class="section-hd-title">Claude AI</span>
+      <span class="shd-badge claude-badge">Anthropic</span>
+      <span class="shd-badge optional">Opzionale</span>
+    </div>
+    <div class="field-group">
+      <div class="field-label">API Key Anthropic</div>
+      <div class="field-row">
+        <input class="field-input" type="password" id="apiKeyClaude" placeholder="sk-ant-api03-..." autocomplete="off"/>
+        <button class="test-btn" onclick="testClaude()">Testa</button>
+      </div>
+      <div class="field-hint">Da <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys. Modello usato: claude-sonnet-4-6 (a pagamento).</div>
+      <div id="test-claude-result"></div>
+    </div>
+  </div>
+
+  <!-- GEMINI -->
+  <div class="settings-section">
+    <div class="section-hd">
+      <span class="section-hd-title">Gemini AI</span>
+      <span class="shd-badge gemini-badge">Google</span>
+      <span class="shd-badge optional">Opzionale — gratuito</span>
+    </div>
+    <div class="field-group">
+      <div class="field-label">API Key Google AI</div>
+      <div class="field-row">
+        <input class="field-input" type="password" id="apiKeyGemini" placeholder="AIzaSy..." autocomplete="off"/>
+        <button class="test-btn" onclick="testGemini()">Testa</button>
+      </div>
+      <div class="field-hint">Da <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a> → Get API Key. Tier gratuito disponibile. Modello usato: gemini-2.0-flash.</div>
+      <div id="test-gemini-result"></div>
+    </div>
+  </div>
+
+  <!-- WORDPRESS -->
+  <div class="settings-section">
+    <div class="section-hd">
+      <span class="section-hd-title">WordPress</span>
+      <span class="shd-badge optional">Opzionale</span>
+    </div>
+    <div class="field-group">
+      <div class="field-label">URL sito</div>
+      <input class="field-input" type="text" id="wpUrl" placeholder="https://praticheeformazione.it"/>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Username WordPress</div>
+      <input class="field-input" type="text" id="wpUser" placeholder="admin" autocomplete="off"/>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Application Password</div>
+      <div class="field-row">
+        <input class="field-input" type="password" id="wpPass" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" autocomplete="off"/>
+        <button class="test-btn" onclick="testWP()">Testa</button>
+      </div>
+      <div class="field-hint">WP Admin → Utenti → Il tuo profilo → Application Passwords → aggiungi "Dashboard AI".</div>
+      <div id="test-wp-result"></div>
+    </div>
+  </div>
+
+  <!-- INSTAGRAM -->
+  <div class="settings-section">
+    <div class="section-hd">
+      <span class="section-hd-title">Instagram</span>
+      <span class="shd-badge optional">Opzionale</span>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Access Token (Meta Graph API)</div>
+      <div class="field-row">
+        <input class="field-input" type="password" id="igToken" placeholder="EAAxxxxxx..." autocomplete="off"/>
+        <button class="test-btn" onclick="testIG()">Testa</button>
+      </div>
+      <div class="field-hint">Da <a href="https://developers.facebook.com/tools/explorer" target="_blank">Graph API Explorer</a> con permessi <code style="color:var(--teal)">instagram_basic</code> + <code style="color:var(--teal)">instagram_content_publish</code>.</div>
+      <div id="test-ig-result"></div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Instagram User ID (numerico)</div>
+      <input class="field-input" type="text" id="igUserId" placeholder="123456789012345"/>
+      <div class="field-hint">Graph API Explorer → <code style="color:var(--teal)">me/accounts</code> → <code style="color:var(--teal)">instagram_business_account.id</code></div>
+    </div>
+  </div>
+
+  <button class="save-btn" onclick="saveConfig()">Salva configurazione</button>
+  <div id="saveMsg" style="font-size:12px;color:var(--green);margin-top:10px;display:none">Configurazione salvata!</div>
+</div>
+
+<!-- ════ IDEE ════ -->
+<div id="panel-idee" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Idee del giorno</div>
+    <div class="panel-sub">Suggerimenti personalizzati per praticheeformazione.it</div>
+  </div>
+  <div id="ai-banner-idee" class="ai-banner"></div>
+  <div id="manual-prompt-ideas" style="display:none" class="action-area manual-mode">
+    <div class="action-mode-label">Nessuna AI configurata — modalità manuale</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Copia il prompt su <a href="https://claude.ai" target="_blank" style="color:var(--accent)">claude.ai</a> o <a href="https://gemini.google.com" target="_blank" style="color:var(--gemini)">gemini.google.com</a>, poi incolla la risposta JSON qui sotto.</div>
+    <div class="manual-copy" id="manual-prompt-text"></div>
+    <button class="btn btn-sm" onclick="copyEl('manual-prompt-text',this)">Copia prompt</button>
+    <div style="margin-top:12px">
+      <textarea id="manual-ideas-paste" class="field-input" style="width:100%;height:110px;resize:vertical;font-size:12px" placeholder='Incolla il JSON: [{"id":1,"titolo":"...","brief":"...","categoria":"...","keyword":"...","urgenza":"alta","tipo":"articolo"}]'></textarea>
+      <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="loadManualIdeas()">Carica idee →</button>
+    </div>
+  </div>
+  <div class="gen-bar">
+    <input id="topicIn" placeholder="Argomento specifico (opzionale — es. GPS docenti, mobilità, corsi informatica...)"/>
+    <button class="btn btn-primary" onclick="genIdeas()">Genera idee →</button>
+  </div>
+  <div id="ideasOut"><div style="font-size:13px;color:var(--text3);padding:.5rem 0">Clicca "Genera idee" per ricevere suggerimenti sul mondo scuola: docenti, ATA, GPS, mobilità, formazione.</div></div>
+  <div id="selBarWrap" style="display:none">
+    <div class="sel-bar">
+      <span id="selCount">0 idee selezionate</span>
+      <button class="btn btn-primary btn-sm" onclick="proceedToArticle()">Sviluppa selezionate →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ARTICOLO ════ -->
+<div id="panel-articolo" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Articolo WordPress</div>
+    <div class="panel-sub">Testo completo ottimizzato SEO — se entrambe le AI sono attive, ottieni due varianti da confrontare</div>
+  </div>
+  <div id="ai-banner-art" class="ai-banner"></div>
+  <div id="artOut"><div style="font-size:13px;color:var(--text3)">Seleziona le idee nel passo 1.</div></div>
+</div>
+
+<!-- ════ SEO ════ -->
+<div id="panel-seo" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Analisi SEO</div>
+    <div class="panel-sub">Meta tag, keyword target, struttura H1/H2 e consigli di ottimizzazione</div>
+  </div>
+  <div id="ai-banner-seo" class="ai-banner"></div>
+  <div id="seoOut"><div style="font-size:13px;color:var(--text3)">Generato automaticamente dopo l'articolo.</div></div>
+</div>
+
+<!-- ════ INSTAGRAM ════ -->
+<div id="panel-instagram" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Caption Instagram</div>
+    <div class="panel-sub">Caption con hashtag ottimizzati — con doppia AI ottieni due stili di comunicazione</div>
+  </div>
+  <div id="ai-banner-ig" class="ai-banner"></div>
+  <div id="igOut"><div style="font-size:13px;color:var(--text3)">Generato automaticamente dopo l'articolo.</div></div>
+</div>
+
+<!-- ════ IMMAGINI ════ -->
+<div id="panel-immagini" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Grafiche</div>
+    <div class="panel-sub">Banner articolo e post Instagram — scaricabili in SVG</div>
+  </div>
+  <div id="imgOut"><div style="font-size:13px;color:var(--text3)">Generato automaticamente dopo l'articolo.</div></div>
+</div>
+
+</main>
+</div>
+
+<script>
+const SITE    = "Pratiche e Formazione S.R.L.S.";
+const SITEURL = "praticheeformazione.it";
+const NICHE   = "formazione docenti e personale ATA, pratiche scolastiche (domande GPS, domande ATA, 150 preferenze docenti, domande di mobilità, ricorso carta docente), corsi di lingua e informatica, pratiche universitarie, recupero anni scolastici, assistenza fiscale per docenti";
+
+let cfg = {};
+let state = { ideas:[], selected:[], articles:[], seos:[], captions:[], imgs:[] };
+
+// ── CONFIG ─────────────────────────────────────────────────────
+function loadConfig() {
+  try { cfg = JSON.parse(localStorage.getItem('pef3_cfg')||'{}'); } catch(e) { cfg={}; }
+  const f = id => { if(cfg[id]) document.getElementById(id).value=cfg[id]; };
+  ['apiKeyClaude','apiKeyGemini','wpUrl','wpUser','wpPass','igToken','igUserId'].forEach(f);
+  updateStatus();
+}
+
+function saveConfig() {
+  cfg = {};
+  ['apiKeyClaude','apiKeyGemini','wpUrl','wpUser','wpPass','igToken','igUserId']
+    .forEach(id => { cfg[id] = document.getElementById(id).value.trim(); });
+  cfg.wpUrl = cfg.wpUrl.replace(/\/$/,'');
+  localStorage.setItem('pef3_cfg', JSON.stringify(cfg));
+  updateStatus();
+  const m=document.getElementById('saveMsg');
+  m.style.display='block'; setTimeout(()=>m.style.display='none',2500);
+}
+
+const hasClaude = () => !!(cfg.apiKeyClaude && cfg.apiKeyClaude.startsWith('sk-ant-'));
+const hasGemini = () => !!(cfg.apiKeyGemini && cfg.apiKeyGemini.startsWith('AIza'));
+const hasAI     = () => hasClaude() || hasGemini();
+const hasBoth   = () => hasClaude() && hasGemini();
+const hasWP     = () => !!(cfg.wpUrl && cfg.wpUser && cfg.wpPass);
+const hasIG     = () => !!(cfg.igToken && cfg.igUserId);
+
+function updateStatus() {
+  // Sidebar pills
+  sp('claude', hasClaude(), hasClaude() ? 'Claude — auto' : 'Claude — manuale');
+  sp('gemini', hasGemini(), hasGemini() ? 'Gemini — auto' : 'Gemini — manuale');
+  sp('wp',     hasWP(),     hasWP()     ? 'WordPress — auto' : 'WordPress — manuale');
+  sp('ig',     hasIG(),     hasIG()     ? 'Instagram — auto' : 'Instagram — manuale');
+  // Int cards
+  ic('claude', hasClaude(), hasClaude()?'Automatico':'Manuale',
+    hasClaude()?'Genera contenuti via API Anthropic':'Nessuna API Key configurata');
+  ic('gemini', hasGemini(), hasGemini()?'Automatico':'Manuale',
+    hasGemini()?'Genera contenuti via API Google (gratuita)':'Nessuna API Key configurata');
+  ic('wp', hasWP(), hasWP()?'Automatico':'Manuale',
+    hasWP()?'Pubblica articoli direttamente su WordPress':'Credenziali non configurate');
+  ic('ig', hasIG(), hasIG()?'Automatico':'Manuale',
+    hasIG()?'Pubblica post via Meta Graph API':'Token non configurato');
+}
+
+function sp(k, ok, label) {
+  document.getElementById(`dp-${k}`).className = 'dot' + (ok?' ok':'');
+  document.getElementById(`lp-${k}`).textContent = label;
+}
+
+function ic(k, ok, badge, desc) {
+  document.getElementById(`icard-${k}`).className = 'int-card' + (ok?' connected':'');
+  const b = document.getElementById(`ibadge-${k}`);
+  b.className = 'int-badge ' + (ok?'auto':'off');
+  b.textContent = badge;
+  document.getElementById(`idesc-${k}`).textContent = desc;
+}
+
+// ── AI BANNER ─────────────────────────────────────────────────
+function renderAIBanner(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = '';
+  if (!hasAI()) {
+    html = '<div class="ai-chip">Nessuna AI — modalità manuale</div>';
+  } else if (hasBoth()) {
+    html = '<div class="ai-chip both"><span class="ai-dot"></span>Claude + Gemini — risposte parallele</div>';
+  } else if (hasClaude()) {
+    html = '<div class="ai-chip active-claude"><span class="ai-dot"></span>Claude AI</div>';
+  } else {
+    html = '<div class="ai-chip active-gemini"><span class="ai-dot"></span>Gemini AI</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────
+function goPanel(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+}
+
+function markDone(step) {
+  const d = document.getElementById('dot-'+step);
+  if (d) d.classList.add('done');
+}
+
+// ── API CALLS ─────────────────────────────────────────────────
+async function callClaude(prompt, sys) {
+  const body = { model:"claude-sonnet-4-6", max_tokens:1500, messages:[{role:"user",content:prompt}] };
+  if (sys) body.system = sys;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":cfg.apiKeyClaude,"anthropic-version":"2023-06-01"},
+    body:JSON.stringify(body)
+  });
+  if (!r.ok) { const e=await r.json(); throw new Error(e.error?.message||`Claude HTTP ${r.status}`); }
+  const d = await r.json();
+  return d.content.map(b=>b.text||'').join('');
+}
+
+async function callGemini(prompt, sys) {
+  const fullPrompt = sys ? `${sys}\n\n${prompt}` : prompt;
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.apiKeyGemini}`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ contents:[{parts:[{text:fullPrompt}]}], generationConfig:{maxOutputTokens:1500} })
+  });
+  if (!r.ok) { const e=await r.json(); throw new Error(e.error?.message||`Gemini HTTP ${r.status}`); }
+  const d = await r.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// callBoth: chiama in parallelo tutte le AI attive, restituisce [{source, text}]
+async function callBoth(prompt, sys) {
+  const tasks = [];
+  if (hasClaude()) tasks.push(callClaude(prompt, sys).then(t=>({source:'claude',text:t})).catch(e=>({source:'claude',error:e.message})));
+  if (hasGemini()) tasks.push(callGemini(prompt, sys).then(t=>({source:'gemini',text:t})).catch(e=>({source:'gemini',error:e.message})));
+  return Promise.all(tasks);
+}
+
+function parseJSON(raw) { return JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+
+function copyEl(id, btn) {
+  const el=document.getElementById(id);
+  if(el) navigator.clipboard.writeText(el.textContent||el.value||'');
+  if(btn){ const o=btn.textContent; btn.textContent='Copiato!'; setTimeout(()=>btn.textContent=o,1800); }
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text);
+  if(btn){ const o=btn.textContent; btn.textContent='Copiato!'; setTimeout(()=>btn.textContent=o,1800); }
+}
+
+// ── TEST CONNECTIONS ───────────────────────────────────────────
+async function testClaude() {
+  const key=document.getElementById('apiKeyClaude').value.trim();
+  const res=document.getElementById('test-claude-result');
+  if(!key){res.innerHTML='<div class="test-result err">Inserisci la API Key</div>';return;}
+  res.innerHTML='<div class="test-result info"><span class="spin"></span>Test...</div>';
+  try {
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},
+      body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:10,messages:[{role:"user",content:"hi"}]})
+    });
+    const d=await r.json();
+    res.innerHTML = r.ok ? '<div class="test-result ok">Connessione riuscita</div>'
+      : `<div class="test-result err">${d.error?.message||'Errore'}</div>`;
+  } catch(e){ res.innerHTML=`<div class="test-result err">${e.message}</div>`; }
+}
+
+async function testGemini() {
+  const key=document.getElementById('apiKeyGemini').value.trim();
+  const res=document.getElementById('test-gemini-result');
+  if(!key){res.innerHTML='<div class="test-result err">Inserisci la API Key</div>';return;}
+  res.innerHTML='<div class="test-result info"><span class="spin"></span>Test...</div>';
+  try {
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{text:"Say OK"}]}],generationConfig:{maxOutputTokens:5}})
+    });
+    const d=await r.json();
+    if(r.ok && d.candidates) res.innerHTML='<div class="test-result ok">Connessione riuscita — Gemini 2.0 Flash</div>';
+    else res.innerHTML=`<div class="test-result err">${d.error?.message||'Errore'}</div>`;
+  } catch(e){ res.innerHTML=`<div class="test-result err">${e.message}</div>`; }
+}
+
+async function testWP() {
+  const url=document.getElementById('wpUrl').value.trim().replace(/\/$/,'');
+  const user=document.getElementById('wpUser').value.trim();
+  const pass=document.getElementById('wpPass').value.trim();
+  const res=document.getElementById('test-wp-result');
+  if(!url||!user||!pass){res.innerHTML='<div class="test-result err">Compila tutti i campi WordPress</div>';return;}
+  res.innerHTML='<div class="test-result info"><span class="spin"></span>Test...</div>';
+  try {
+    const r=await fetch(`${url}/wp-json/wp/v2/users/me`,{headers:{Authorization:'Basic '+btoa(unescape(encodeURIComponent(`${user}:${pass}`)))}});
+    if(r.ok){const u=await r.json();res.innerHTML=`<div class="test-result ok">Connesso come: ${u.name}</div>`;}
+    else res.innerHTML=`<div class="test-result err">Errore HTTP ${r.status}</div>`;
+  } catch(e){ res.innerHTML=`<div class="test-result err">Impossibile raggiungere WP</div>`; }
+}
+
+async function testIG() {
+  const token=document.getElementById('igToken').value.trim();
+  const res=document.getElementById('test-ig-result');
+  if(!token){res.innerHTML='<div class="test-result err">Inserisci il token</div>';return;}
+  res.innerHTML='<div class="test-result info"><span class="spin"></span>Test...</div>';
+  try {
+    const r=await fetch(`https://graph.facebook.com/v19.0/me?access_token=${token}`);
+    const d=await r.json();
+    if(r.ok&&d.name) res.innerHTML=`<div class="test-result ok">Token valido — ${d.name}</div>`;
+    else res.innerHTML=`<div class="test-result err">${d.error?.message||'Token non valido'}</div>`;
+  } catch(e){ res.innerHTML=`<div class="test-result err">${e.message}</div>`; }
+}
+
+// ── PROMPTS ────────────────────────────────────────────────────
+const SYS_CONTENT   = `Sei un content strategist per ${SITE} (${SITEURL}), settore: ${NICHE}. Rispondi SOLO con JSON valido, nessun testo extra.`;
+const SYS_COPYWRITE = `Sei un copywriter SEO esperto per ${SITE}. Scrivi in italiano professionale. Settore: ${NICHE}.`;
+const SYS_SEO       = `Sei un esperto SEO italiano per il settore scolastico. Rispondi SOLO con JSON valido.`;
+const SYS_SMM       = `Sei un Social Media Manager per ${SITE}, settore ${NICHE}. Rispondi SOLO con JSON valido.`;
+
+function pIdeas(topic) {
+  return `Genera 6 idee di contenuto originali per oggi${topic?` su: ${topic}`:''} per ${SITE}.
+Rispondi SOLO con JSON:
+[{"id":1,"titolo":"...","brief":"...","categoria":"...","keyword":"...","urgenza":"alta|media","tipo":"articolo|guida|news|faq"}]
+Categorie: Docenti,ATA,GPS,Mobilità,Formazione,Università,Fiscale,Lingua,Informatica,Pratiche,News.`;
+}
+
+function pArticle(idea) {
+  return `Scrivi un articolo SEO completo per ${SITEURL}.
+Titolo: "${idea.titolo}" | Keyword: ${idea.keyword} | Tipo: ${idea.tipo}
+Struttura:
+[META_TITLE]: (max 60 car.)
+[META_DESC]: (max 155 car.)
+# ${idea.titolo}
+Introduzione (80-100 parole)
+## [H2 pertinente] (120-150 parole)
+## [H2 pertinente] (120-150 parole)
+## [H2 pertinente] (120-150 parole)
+## Conclusione con CTA verso ${SITEURL}`;
+}
+
+function pSEO(idea) {
+  return `Analisi SEO per: "${idea.titolo}" (keyword: ${idea.keyword}) — ${SITE}.
+JSON: {"metaTitle":"...","metaDesc":"...","keywords":[{"kw":"...","vol":"alto|medio|basso","diff":1-10,"tipo":"principale|lsi|long-tail"}],"h1":"...","h2s":["...","..."],"tips":["...","...","..."]}
+8 keyword totali. Tips pratici per il settore scuola.`;
+}
+
+function pIG(idea) {
+  return `Crea 2 caption Instagram per: "${idea.titolo}" — ${SITE}.
+JSON: [{"ver":"A","caption":"...","hashtags":["..."]},{"ver":"B","caption":"...","hashtags":["..."]}]
+Italiano, professionale ma umano, max 180 parole, 2-3 emoji, CTA verso ${SITEURL}.
+15 hashtag pertinenti docenti/formazione/scuola Italia per versione.`;
+}
+
+function pImg(idea) {
+  return `Crea 2 grafiche SVG per: "${idea.titolo}" — ${SITE}.
+JSON: {"articleSVG":"...","instagramSVG":"..."}
+articleSVG (viewBox="0 0 800 400"): sfondo #0d1b2a, accent #3d6fff, titolo bianco, categoria come pillola, footer "${SITEURL}". Solo elementi SVG base, font-family="sans-serif".
+instagramSVG (viewBox="0 0 1080 1080"): sfondo #0d1b2a, blocco #3d6fff metà superiore, titolo grande centrato, logo "P&F" opacity 0.2, pattern decorativo. font-family="sans-serif".`;
+}
+
+// ── STEP 1: IDEE ───────────────────────────────────────────────
+const catColor = {
+  'Docenti':'b-blue','ATA':'b-teal','GPS':'b-amber','Mobilità':'b-purple',
+  'Formazione':'b-teal','Università':'b-blue','Fiscale':'b-amber',
+  'Lingua':'b-green','Informatica':'b-teal','Pratiche':'b-purple','News':'b-blue'
+};
+
+async function genIdeas() {
+  const topic = document.getElementById('topicIn').value.trim();
+  const out   = document.getElementById('ideasOut');
+  document.getElementById('selBarWrap').style.display='none';
+  document.getElementById('manual-prompt-ideas').style.display='none';
+  state.selected=[];
+  renderAIBanner('ai-banner-idee');
+
+  if (!hasAI()) {
+    document.getElementById('manual-prompt-text').textContent = pIdeas(topic);
+    document.getElementById('manual-prompt-ideas').style.display='block';
+    out.innerHTML='<div style="font-size:13px;color:var(--text3)">Copia il prompt sopra su claude.ai o gemini.google.com, poi incolla la risposta JSON.</div>';
+    return;
+  }
+
+  out.innerHTML='<div class="loading-msg"><span class="spin"></span>Generazione idee in corso...</div>';
+
+  if (!hasBoth()) {
+    // Una sola AI
+    try {
+      const raw = hasClaude() ? await callClaude(pIdeas(topic),SYS_CONTENT) : await callGemini(pIdeas(topic),SYS_CONTENT);
+      state.ideas = parseJSON(raw);
+      renderIdeas();
+    } catch(e) { out.innerHTML=`<div class="loading-msg" style="color:var(--red)">Errore AI: ${e.message}</div>`; }
+  } else {
+    // Entrambe: prendi Claude come base (più affidabile per JSON), mostra badge fonte
+    const results = await callBoth(pIdeas(topic), SYS_CONTENT);
+    const ok = results.find(r=>!r.error);
+    if (!ok) { out.innerHTML=`<div class="loading-msg" style="color:var(--red)">Errore entrambe le AI. Controlla le API Key.</div>`; return; }
+    try {
+      state.ideas = parseJSON(ok.text);
+      // aggiungi badge fonte
+      state.ideas.forEach(i => i._src = ok.source);
+      renderIdeas(true);
+    } catch(e) { out.innerHTML=`<div class="loading-msg" style="color:var(--red)">Errore parsing JSON: ${e.message}</div>`; }
+  }
+}
+
+function loadManualIdeas() {
+  const raw=document.getElementById('manual-ideas-paste').value.trim();
+  if(!raw) return;
+  try { state.ideas=parseJSON(raw); document.getElementById('manual-prompt-ideas').style.display='none'; renderIdeas(); }
+  catch(e) { alert('JSON non valido. Assicurati di copiare solo il blocco JSON.'); }
+}
+
+function renderIdeas(showSrc=false) {
+  const out=document.getElementById('ideasOut');
+  out.innerHTML = state.ideas.map(idea=>`
+    <div class="card" id="icard-${idea.id}">
+      <div class="idea-row">
+        <div class="idea-check" id="ichk-${idea.id}" onclick="toggleIdea(${idea.id})"></div>
+        <div style="flex:1">
+          <div class="idea-title">
+            ${showSrc&&idea._src?`<span class="src-tag src-${idea._src}">${idea._src==='claude'?'Claude':'Gemini'}</span>`:''}
+            ${idea.titolo}
+          </div>
+          <div style="margin:4px 0 6px">
+            <span class="badge ${catColor[idea.categoria]||'b-blue'}">${idea.categoria}</span>
+            <span class="badge b-blue">${idea.tipo}</span>
+            ${idea.urgenza==='alta'?'<span class="badge b-red">Urgente</span>':''}
+          </div>
+          <div class="idea-brief">${idea.brief}</div>
+          <div class="idea-kw">Keyword: <span>${idea.keyword}</span></div>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('selBarWrap').style.display='block';
+  updateSelBar();
+}
+
+function toggleIdea(id) {
+  const chk=document.getElementById(`ichk-${id}`);
+  const card=document.getElementById(`icard-${id}`);
+  const idx=state.selected.indexOf(id);
+  if(idx===-1){ state.selected.push(id); chk.classList.add('checked'); card.classList.add('selected'); }
+  else { state.selected.splice(idx,1); chk.classList.remove('checked'); card.classList.remove('selected'); }
+  updateSelBar();
+}
+
+function updateSelBar() {
+  const n=state.selected.length;
+  document.getElementById('selCount').textContent = n===0?'Nessuna idea selezionata':`${n} idea${n>1?'e':''} selezionata${n>1?'':''}`;
+}
+
+// ── STEP 2: ARTICOLO ───────────────────────────────────────────
+async function proceedToArticle() {
+  const sel=state.ideas.filter(i=>state.selected.includes(i.id));
+  if(!sel.length){ alert('Seleziona almeno una idea.'); return; }
+  markDone('idee'); goPanel('articolo');
+  renderAIBanner('ai-banner-art');
+  state.articles=[];
+  const out=document.getElementById('artOut');
+
+  if (!hasAI()) {
+    out.innerHTML=sel.map(idea=>`
+      <div class="card" id="art-${idea.id}">
+        <div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div>
+        <div class="action-area manual-mode">
+          <div class="action-mode-label">Modalità manuale — copia il prompt su claude.ai o gemini</div>
+          <div class="manual-copy" id="artprompt-${idea.id}">${pArticle(idea)}</div>
+          <button class="btn btn-sm" onclick="copyEl('artprompt-${idea.id}',this)" style="margin-bottom:10px">Copia prompt</button>
+          <textarea id="artpaste-${idea.id}" class="field-input" style="width:100%;height:140px;resize:vertical;font-size:12px" placeholder="Incolla il testo dell'articolo..."></textarea>
+          <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="loadManualArticle(${idea.id},${JSON.stringify(sel).replace(/"/g,'&quot;')})">Salva →</button>
+        </div>
+        <div id="art-saved-${idea.id}"></div>
+      </div>`).join('');
+    markDone('articolo'); showManualSEOPrompts(sel); return;
+  }
+
+  if (!hasBoth()) {
+    // Una sola AI
+    out.innerHTML=sel.map(idea=>`
+      <div class="card" id="art-${idea.id}">
+        <div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div>
+        <div class="loading-msg"><span class="spin"></span>Scrittura articolo...</div>
+      </div>`).join('');
+    for (const idea of sel) {
+      try {
+        const art = hasClaude() ? await callClaude(pArticle(idea),SYS_COPYWRITE) : await callGemini(pArticle(idea),SYS_COPYWRITE);
+        const src = hasClaude()?'claude':'gemini';
+        state.articles.push({id:idea.id,titolo:idea.titolo,keyword:idea.keyword,testo:art,idea,src});
+        document.getElementById(`art-${idea.id}`).innerHTML = renderSingleArticle(idea,art,src);
+        document.getElementById(`art-${idea.id}`).classList.add('done');
+      } catch(e) {
+        document.getElementById(`art-${idea.id}`).innerHTML=`<div class="idea-title">${idea.titolo}</div><div class="loading-msg" style="color:var(--red)">Errore: ${e.message}</div>`;
+      }
+    }
+  } else {
+    // Entrambe le AI — layout dual column
+    out.innerHTML=sel.map(idea=>`
+      <div class="card" id="art-${idea.id}">
+        <div class="idea-title" style="margin-bottom:10px">${idea.titolo}</div>
+        <div class="dual-wrap">
+          <div class="dual-col col-claude">
+            <div class="dual-col-header"><span class="ai-dot" style="background:var(--claude);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Claude</span></div>
+            <div class="dual-col-body" id="art-claude-${idea.id}"><span class="spin"></span></div>
+          </div>
+          <div class="dual-col col-gemini">
+            <div class="dual-col-header"><span class="ai-dot" style="background:var(--gemini);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Gemini</span></div>
+            <div class="dual-col-body" id="art-gemini-${idea.id}"><span class="spin"></span></div>
+          </div>
+        </div>
+        <div id="art-actions-${idea.id}" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>`).join('');
+
+    for (const idea of sel) {
+      const results = await callBoth(pArticle(idea), SYS_COPYWRITE);
+      results.forEach(r => {
+        const el = document.getElementById(`art-${r.source}-${idea.id}`);
+        if (!el) return;
+        if (r.error) { el.innerHTML=`<span style="color:var(--red);font-size:11px">Errore: ${r.error}</span>`; return; }
+        el.textContent = r.text;
+        state.articles.push({id:idea.id,titolo:idea.titolo,keyword:idea.keyword,testo:r.text,idea,src:r.source});
+      });
+      // Bottoni azioni
+      const acts = document.getElementById(`art-actions-${idea.id}`);
+      if (acts) {
+        const wpBtn = hasWP() ? `<button class="btn btn-sm btn-green" onclick="publishWP(${idea.id},'claude',this)">Pubblica Claude su WP →</button><button class="btn btn-sm btn-green" onclick="publishWP(${idea.id},'gemini',this)">Pubblica Gemini su WP →</button>` : `<button class="btn btn-sm btn-amber" onclick="showWPManual(${idea.id})">Istruzioni WP →</button>`;
+        acts.innerHTML=`
+          <button class="btn btn-sm btn-claude" onclick="copyArtSrc(${idea.id},'claude',this)">Copia Claude</button>
+          <button class="btn btn-sm btn-gemini" onclick="copyArtSrc(${idea.id},'gemini',this)">Copia Gemini</button>
+          ${wpBtn}`;
+      }
+      document.getElementById(`art-${idea.id}`).classList.add('done');
+    }
+  }
+
+  markDone('articolo');
+  if (hasAI()) await genSEO(sel); else showManualSEOPrompts(sel);
+}
+
+function renderSingleArticle(idea, art, src) {
+  const srcTag = `<span class="src-tag src-${src}">${src==='claude'?'Claude':'Gemini'}</span>`;
+  const wpBtn = hasWP()
+    ? `<button class="btn btn-sm btn-green" onclick="publishWP(${idea.id},'${src}',this)">Pubblica su WordPress →</button>`
+    : `<button class="btn btn-sm btn-amber" onclick="showWPManual(${idea.id})">Istruzioni WP →</button>`;
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div class="idea-title">${srcTag}${idea.titolo}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="copyArtSrc(${idea.id},'${src}',this)">Copia testo</button>
+        ${wpBtn}
+      </div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;font-size:12px;color:var(--text2);line-height:1.75;white-space:pre-wrap;max-height:280px;overflow-y:auto;font-family:'IBM Plex Mono',monospace">${art}</div>
+    <div id="wp-manual-${idea.id}"></div>`;
+}
+
+function copyArtSrc(id, src, btn) {
+  const a = state.articles.find(x=>x.id===id && x.src===src);
+  if (a) copyToClipboard(a.testo, btn);
+}
+
+function loadManualArticle(id, selJSON) {
+  const text=document.getElementById(`artpaste-${id}`).value.trim();
+  if(!text) return;
+  const idea=state.ideas.find(i=>i.id===id);
+  state.articles.push({id,titolo:idea?.titolo||'',keyword:idea?.keyword||'',testo:text,idea,src:'manual'});
+  const saved=document.getElementById(`art-saved-${id}`);
+  const wpBtn=hasWP()?`<button class="btn btn-sm btn-green" onclick="publishWP(${id},'manual',this)">Pubblica su WordPress →</button>`:`<button class="btn btn-sm btn-amber" onclick="showWPManual(${id})">Istruzioni WP →</button>`;
+  saved.innerHTML=`<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><span class="badge b-green">Articolo salvato</span>${wpBtn}<button class="btn btn-sm" onclick="copyArtSrc(${id},'manual',this)">Copia testo</button></div>`;
+  document.getElementById(`art-${id}`).classList.add('done');
+  const sel=state.ideas.filter(i=>state.selected.includes(i.id));
+  if(state.articles.filter(a=>state.selected.includes(a.id)).length>=sel.length)
+    showManualSEOPrompts(sel);
+}
+
+function showWPManual(id) {
+  const el=document.getElementById(`wp-manual-${id}`);
+  if(!el) return;
+  el.innerHTML=`<div class="action-area manual-mode" style="margin-top:10px">
+    <div class="action-mode-label">Pubblicazione manuale su WordPress</div>
+    <ol class="steps-manual">
+      <li>Accedi a <strong>praticheeformazione.it/wp-admin</strong></li>
+      <li>Vai su <strong>Articoli → Aggiungi nuovo</strong></li>
+      <li>Incolla il titolo e il testo copiati sopra</li>
+      <li>Imposta la categoria e aggiungi l'immagine dal passo 5</li>
+      <li>Clicca <strong>Pubblica</strong> o <strong>Bozza</strong></li>
+    </ol>
+  </div>`;
+}
+
+async function publishWP(id, src, btn) {
+  const a=state.articles.find(x=>x.id===id&&x.src===src) || state.articles.find(x=>x.id===id);
+  if(!a) return;
+  btn.disabled=true; btn.textContent='Pubblicazione...';
+  try {
+    const r=await fetch(`${cfg.wpUrl}/wp-json/wp/v2/posts`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Basic '+btoa(unescape(encodeURIComponent(`${cfg.wpUser}:${cfg.wpPass}`)))},
+      body:JSON.stringify({title:a.titolo,content:a.testo.replace(/\n/g,'<br>'),status:'draft',excerpt:a.testo.substring(0,200)})
+    });
+    if(r.ok){ btn.textContent='Salvato come bozza ✓'; btn.style.background='rgba(34,197,94,.15)'; btn.style.color='var(--green)'; }
+    else { const e=await r.json(); btn.textContent=`Errore: ${e.message||r.status}`; btn.style.color='var(--red)'; btn.disabled=false; }
+  } catch(e){ btn.textContent='Errore connessione WP'; btn.style.color='var(--red)'; btn.disabled=false; }
+}
+
+// ── STEP 3: SEO ────────────────────────────────────────────────
+async function genSEO(sel) {
+  goPanel('seo'); renderAIBanner('ai-banner-seo');
+  const out=document.getElementById('seoOut');
+  state.seos=[];
+
+  if (!hasAI()) { showManualSEOPrompts(sel); return; }
+
+  if (!hasBoth()) {
+    out.innerHTML=sel.map(idea=>`<div class="card" id="seo-${idea.id}"><div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div><div class="loading-msg"><span class="spin"></span>Analisi SEO...</div></div>`).join('');
+    for (const idea of sel) {
+      try {
+        const raw=hasClaude()?await callClaude(pSEO(idea),SYS_SEO):await callGemini(pSEO(idea),SYS_SEO);
+        const seo=parseJSON(raw); seo.id=idea.id; seo.titolo=idea.titolo; seo.src=hasClaude()?'claude':'gemini';
+        state.seos.push(seo);
+        document.getElementById(`seo-${idea.id}`).innerHTML=buildSEOHTML(seo);
+        document.getElementById(`seo-${idea.id}`).classList.add('done');
+      } catch(e){ document.getElementById(`seo-${idea.id}`).innerHTML=`<div class="idea-title">${idea.titolo}</div><div class="loading-msg" style="color:var(--red)">Errore: ${e.message}</div>`; }
+    }
+  } else {
+    out.innerHTML=sel.map(idea=>`
+      <div class="card" id="seo-${idea.id}">
+        <div class="idea-title" style="margin-bottom:10px">${idea.titolo}</div>
+        <div class="dual-wrap">
+          <div class="dual-col col-claude"><div class="dual-col-header"><span style="background:var(--claude);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Claude</span></div><div id="seo-claude-${idea.id}"><span class="spin"></span></div></div>
+          <div class="dual-col col-gemini"><div class="dual-col-header"><span style="background:var(--gemini);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Gemini</span></div><div id="seo-gemini-${idea.id}"><span class="spin"></span></div></div>
+        </div>
+      </div>`).join('');
+    for (const idea of sel) {
+      const results=await callBoth(pSEO(idea),SYS_SEO);
+      results.forEach(r=>{
+        const el=document.getElementById(`seo-${r.source}-${idea.id}`);
+        if(!el) return;
+        if(r.error){ el.innerHTML=`<span style="color:var(--red);font-size:11px">${r.error}</span>`; return; }
+        try {
+          const seo=parseJSON(r.text); seo.id=idea.id; seo.titolo=idea.titolo; seo.src=r.source;
+          state.seos.push(seo);
+          el.innerHTML=buildSEOCompact(seo);
+        } catch(e){ el.innerHTML=`<span style="color:var(--red);font-size:11px">Errore parsing</span>`; }
+      });
+      document.getElementById(`seo-${idea.id}`).classList.add('done');
+    }
+  }
+  markDone('seo');
+  await genIG(sel);
+}
+
+function showManualSEOPrompts(sel) {
+  goPanel('seo');
+  const out=document.getElementById('seoOut');
+  out.innerHTML=sel.map(idea=>`
+    <div class="card" id="seo-${idea.id}">
+      <div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div>
+      <div class="action-area manual-mode">
+        <div class="action-mode-label">Modalità manuale</div>
+        <div class="manual-copy" id="seoprompt-${idea.id}">${pSEO(idea)}</div>
+        <button class="btn btn-sm" onclick="copyEl('seoprompt-${idea.id}',this)" style="margin-bottom:10px">Copia prompt SEO</button>
+        <textarea id="seopaste-${idea.id}" class="field-input" style="width:100%;height:90px;resize:vertical;font-size:12px" placeholder='{"metaTitle":"...","metaDesc":"...","keywords":[...],"tips":["..."]}'></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="loadManualSEO(${idea.id})">Carica →</button>
+      </div>
+      <div id="seo-loaded-${idea.id}"></div>
+    </div>`).join('');
+  markDone('seo');
+}
+
+function loadManualSEO(id) {
+  const raw=document.getElementById(`seopaste-${id}`).value.trim();
+  if(!raw) return;
+  try {
+    const seo=parseJSON(raw); seo.id=id; seo.src='manual';
+    const idea=state.ideas.find(i=>i.id===id); seo.titolo=idea?.titolo||'';
+    state.seos.push(seo);
+    document.getElementById(`seo-loaded-${id}`).innerHTML=`<div style="margin-top:10px">${buildSEOHTML(seo)}</div>`;
+    document.getElementById(`seo-${id}`).classList.add('done');
+  } catch(e){ alert('JSON non valido.'); }
+}
+
+function buildSEOHTML(seo) {
+  const kwRows=(seo.keywords||[]).map(k=>`<tr>
+    <td style="color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px">${k.kw}</td>
+    <td style="color:var(--text2);font-size:11px">${k.tipo}</td>
+    <td style="color:${k.vol==='alto'?'var(--green)':k.vol==='medio'?'var(--amber)':'var(--text3)'};text-align:right;font-size:11px">${k.vol}</td>
+    <td style="text-align:right;font-size:11px;white-space:nowrap">${k.diff}/10<span class="diff-bar"><span class="diff-fill" style="width:${k.diff*10}%;background:${k.diff>6?'var(--red)':k.diff>3?'var(--amber)':'var(--green)'}"></span></span></td>
+  </tr>`).join('');
+  const tips=(seo.tips||[]).map(t=>`<div style="font-size:12px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:7px"><span style="color:var(--teal)">→</span>${t}</div>`).join('');
+  const srcTag=seo.src&&seo.src!=='manual'?`<span class="src-tag src-${seo.src}">${seo.src==='claude'?'Claude':'Gemini'}</span>`:'';
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div class="idea-title">${srcTag}${seo.titolo||''}</div>
+      <button class="btn btn-sm" onclick='copyToClipboard("Meta title: ${(seo.metaTitle||'').replace(/"/g,'\\"')}\nMeta description: ${(seo.metaDesc||'').replace(/"/g,'\\"')}",this)'>Copia meta</button>
+    </div>
+    <div class="meta-lbl">Meta title (${(seo.metaTitle||'').length} car.)</div>
+    <div class="meta-box">${seo.metaTitle||''}</div>
+    <div class="meta-lbl">Meta description (${(seo.metaDesc||'').length} car.)</div>
+    <div class="meta-box" style="margin-bottom:12px">${seo.metaDesc||''}</div>
+    <div class="meta-lbl" style="margin-bottom:6px">Keyword target</div>
+    <table class="kw-table">${kwRows}</table>
+    <div class="meta-lbl" style="margin-top:12px;margin-bottom:6px">Consigli SEO</div>${tips}`;
+}
+
+function buildSEOCompact(seo) {
+  const tips=(seo.tips||[]).map(t=>`<div style="font-size:11px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">${t}</div>`).join('');
+  return `
+    <div class="meta-lbl" style="margin-bottom:3px">Meta title</div>
+    <div class="meta-box" style="font-size:11px">${seo.metaTitle||''}</div>
+    <div class="meta-lbl" style="margin-bottom:3px">Meta desc.</div>
+    <div class="meta-box" style="font-size:11px;margin-bottom:10px">${seo.metaDesc||''}</div>
+    <div class="meta-lbl" style="margin-bottom:5px">Tips SEO</div>${tips}`;
+}
+
+// ── STEP 4: INSTAGRAM ──────────────────────────────────────────
+async function genIG(sel) {
+  goPanel('instagram'); renderAIBanner('ai-banner-ig');
+  const out=document.getElementById('igOut');
+  state.captions=[];
+
+  if (!hasAI()) { showManualIGPrompts(sel); return; }
+
+  if (!hasBoth()) {
+    out.innerHTML=sel.map(idea=>`<div class="card" id="ig-${idea.id}"><div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div><div class="loading-msg"><span class="spin"></span>Creazione caption...</div></div>`).join('');
+    for (const idea of sel) {
+      try {
+        const raw=hasClaude()?await callClaude(pIG(idea),SYS_SMM):await callGemini(pIG(idea),SYS_SMM);
+        const caps=parseJSON(raw);
+        const src=hasClaude()?'claude':'gemini';
+        state.captions.push({id:idea.id,titolo:idea.titolo,caps,src});
+        document.getElementById(`ig-${idea.id}`).innerHTML=buildIGHTML(idea.id,caps,idea.titolo,src);
+        document.getElementById(`ig-${idea.id}`).classList.add('done');
+      } catch(e){ document.getElementById(`ig-${idea.id}`).innerHTML=`<div class="idea-title">${idea.titolo}</div><div class="loading-msg" style="color:var(--red)">Errore: ${e.message}</div>`; }
+    }
+  } else {
+    // Entrambe: versione A da Claude, versione B da Gemini (otteniamo 4 varianti totali)
+    out.innerHTML=sel.map(idea=>`
+      <div class="card" id="ig-${idea.id}">
+        <div class="idea-title" style="margin-bottom:10px">${idea.titolo}</div>
+        <div class="dual-wrap">
+          <div class="dual-col col-claude"><div class="dual-col-header"><span style="background:var(--claude);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Claude</span></div><div id="ig-claude-${idea.id}"><span class="spin"></span></div></div>
+          <div class="dual-col col-gemini"><div class="dual-col-header"><span style="background:var(--gemini);width:7px;height:7px;border-radius:50%;display:inline-block"></span><span class="dual-col-name">Gemini</span></div><div id="ig-gemini-${idea.id}"><span class="spin"></span></div></div>
+        </div>
+      </div>`).join('');
+    for (const idea of sel) {
+      const results=await callBoth(pIG(idea),SYS_SMM);
+      results.forEach(r=>{
+        const el=document.getElementById(`ig-${r.source}-${idea.id}`);
+        if(!el) return;
+        if(r.error){ el.innerHTML=`<span style="color:var(--red);font-size:11px">${r.error}</span>`; return; }
+        try {
+          const caps=parseJSON(r.text);
+          state.captions.push({id:idea.id,titolo:idea.titolo,caps,src:r.source});
+          el.innerHTML=buildIGCapsHTML(idea.id,caps,r.source);
+        } catch(e){ el.innerHTML=`<span style="color:var(--red);font-size:11px">Errore parsing</span>`; }
+      });
+      document.getElementById(`ig-${idea.id}`).classList.add('done');
+    }
+  }
+  markDone('instagram');
+  await genImages(sel);
+}
+
+function showManualIGPrompts(sel) {
+  goPanel('instagram');
+  document.getElementById('igOut').innerHTML=sel.map(idea=>`
+    <div class="card" id="ig-${idea.id}">
+      <div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div>
+      <div class="action-area manual-mode">
+        <div class="action-mode-label">Modalità manuale</div>
+        <div class="manual-copy" id="igprompt-${idea.id}">${pIG(idea)}</div>
+        <button class="btn btn-sm" onclick="copyEl('igprompt-${idea.id}',this)" style="margin-bottom:10px">Copia prompt IG</button>
+        <textarea id="igpaste-${idea.id}" class="field-input" style="width:100%;height:90px;resize:vertical;font-size:12px" placeholder='[{"ver":"A","caption":"...","hashtags":["..."]}]'></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="loadManualIG(${idea.id})">Carica →</button>
+      </div>
+      <div id="ig-loaded-${idea.id}"></div>
+    </div>`).join('');
+  markDone('instagram');
+}
+
+function loadManualIG(id) {
+  const raw=document.getElementById(`igpaste-${id}`).value.trim();
+  if(!raw) return;
+  try {
+    const caps=parseJSON(raw);
+    const idea=state.ideas.find(i=>i.id===id);
+    state.captions.push({id,titolo:idea?.titolo||'',caps,src:'manual'});
+    document.getElementById(`ig-loaded-${id}`).innerHTML=`<div style="margin-top:10px">${buildIGHTML(id,caps,idea?.titolo||'','manual')}</div>`;
+    document.getElementById(`ig-${id}`).classList.add('done');
+  } catch(e){ alert('JSON non valido.'); }
+}
+
+function buildIGHTML(id, caps, titolo, src='') {
+  const srcTag=src&&src!=='manual'?`<span class="src-tag src-${src}">${src==='claude'?'Claude':'Gemini'}</span>`:'';
+  const tabsHTML=caps.map((c,i)=>`<button class="ig-tab ${i===0?'active':''}" onclick="switchIGTab(${id},'${src}',${i},this)">${c.ver||'V'+(i+1)}</button>`).join('');
+  const versHTML=caps.map((c,i)=>`
+    <div id="igv-${id}-${src}-${i}" style="display:${i===0?'block':'none'}">
+      <div class="caption-text">${c.caption}</div>
+      <div class="caption-hash">${(c.hashtags||[]).map(h=>h.startsWith('#')?h:'#'+h).join(' ')}</div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="copyIGCap(${id},'${src}',${i},this)">Copia caption</button>
+        ${hasIG()?`<button class="btn btn-sm btn-green" onclick="postIG(${id},'${src}',${i},this)">Pubblica su Instagram →</button>`:`<button class="btn btn-sm btn-amber" onclick="showIGManual(${id},'${src}',${i})">Istruzioni Instagram →</button>`}
+      </div>
+      <div id="igm-${id}-${src}-${i}"></div>
+    </div>`).join('');
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div>${srcTag}<span style="font-size:13px;font-weight:500;color:var(--text)">${titolo}</span></div>
+      <div style="display:flex;gap:4px">${tabsHTML}</div>
+    </div>${versHTML}`;
+}
+
+function buildIGCapsHTML(id, caps, src) {
+  const tabsHTML=caps.map((c,i)=>`<button class="ig-tab ${i===0?'active':''}" onclick="switchIGTab(${id},'${src}',${i},this)">${c.ver||'V'+(i+1)}</button>`).join('');
+  const versHTML=caps.map((c,i)=>`
+    <div id="igv-${id}-${src}-${i}" style="display:${i===0?'block':'none'}">
+      <div class="caption-text" style="font-size:12px">${c.caption}</div>
+      <div class="caption-hash" style="font-size:11px">${(c.hashtags||[]).map(h=>h.startsWith('#')?h:'#'+h).join(' ')}</div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="copyIGCap(${id},'${src}',${i},this)">Copia</button>
+        ${hasIG()?`<button class="btn btn-sm btn-green" style="font-size:10px" onclick="postIG(${id},'${src}',${i},this)">Pubblica →</button>`:''}
+      </div>
+    </div>`).join('');
+  return `<div style="display:flex;gap:4px;margin-bottom:8px">${tabsHTML}</div>${versHTML}`;
+}
+
+function switchIGTab(id, src, idx) {
+  const cap=state.captions.find(c=>c.id===id&&c.src===src);
+  if(!cap) return;
+  const panel=document.getElementById(`ig-${src}-${id}`) || document.getElementById(`ig-${id}`);
+  if(panel){ panel.querySelectorAll('.ig-tab').forEach((t,i)=>t.classList.toggle('active',i===idx)); }
+  cap.caps.forEach((_,i)=>{
+    const el=document.getElementById(`igv-${id}-${src}-${i}`);
+    if(el) el.style.display=i===idx?'block':'none';
+  });
+}
+
+function copyIGCap(id, src, idx, btn) {
+  const cap=state.captions.find(c=>c.id===id&&c.src===src);
+  if(!cap) return;
+  const c=cap.caps[idx];
+  copyToClipboard(c.caption+'\n\n'+(c.hashtags||[]).map(h=>h.startsWith('#')?h:'#'+h).join(' '),btn);
+}
+
+function showIGManual(id, src, idx) {
+  const el=document.getElementById(`igm-${id}-${src}-${idx}`);
+  if(!el) return;
+  el.innerHTML=`<div class="action-area manual-mode" style="margin-top:8px">
+    <div class="action-mode-label">Pubblicazione manuale su Instagram</div>
+    <ol class="steps-manual">
+      <li>Copia la caption con il tasto "Copia caption"</li>
+      <li>Salva l'immagine dal passo 5 sul tuo dispositivo</li>
+      <li>Apri l'app <strong>Instagram</strong> → "+"</li>
+      <li>Seleziona la foto, incolla la caption</li>
+      <li>Tappa <strong>Condividi</strong></li>
+    </ol>
+  </div>`;
+}
+
+async function postIG(id, src, idx, btn) {
+  const cap=state.captions.find(c=>c.id===id&&c.src===src);
+  if(!cap) return;
+  const c=cap.caps[idx];
+  const imgItem=state.imgs.find(i=>i.id===id);
+  if(!imgItem?.igUrl){ btn.textContent='Serve URL immagine pubblica'; btn.style.color='var(--amber)'; return; }
+  btn.disabled=true; btn.textContent='Pubblicazione...';
+  const caption=c.caption+'\n\n'+(c.hashtags||[]).map(h=>h.startsWith('#')?h:'#'+h).join(' ');
+  try {
+    const r1=await fetch(`https://graph.facebook.com/v19.0/${cfg.igUserId}/media`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image_url:imgItem.igUrl,caption,access_token:cfg.igToken})
+    });
+    const m=await r1.json();
+    if(!m.id) throw new Error(m.error?.message||'Errore container');
+    const r2=await fetch(`https://graph.facebook.com/v19.0/${cfg.igUserId}/media_publish`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({creation_id:m.id,access_token:cfg.igToken})
+    });
+    const p=await r2.json();
+    if(p.id){ btn.textContent='Pubblicato ✓'; btn.classList.add('btn-green'); }
+    else throw new Error(p.error?.message||'Errore pubblicazione');
+  } catch(e){ btn.textContent=`Errore: ${e.message}`; btn.style.color='var(--red)'; btn.disabled=false; }
+}
+
+// ── STEP 5: IMMAGINI ───────────────────────────────────────────
+async function genImages(sel) {
+  goPanel('immagini');
+  const out=document.getElementById('imgOut');
+  state.imgs=[];
+
+  if (!hasAI()) {
+    out.innerHTML=sel.map(idea=>buildImgManual(idea)).join('');
+    markDone('immagini'); return;
+  }
+
+  out.innerHTML=sel.map(idea=>`<div class="card" id="img-${idea.id}"><div class="idea-title" style="margin-bottom:8px">${idea.titolo}</div><div class="loading-msg"><span class="spin"></span>Generazione grafiche SVG...</div></div>`).join('');
+  const aiCall = hasClaude() ? (p,s)=>callClaude(p,s) : (p,s)=>callGemini(p,s);
+  const src = hasClaude()?'claude':'gemini';
+
+  for (const idea of sel) {
+    try {
+      const raw=await aiCall(pImg(idea),`Sei un graphic designer. Crei SVG inline. Rispondi SOLO con JSON valido.`);
+      const imgs=parseJSON(raw);
+      imgs.id=idea.id; imgs.titolo=idea.titolo; imgs.src=src;
+      state.imgs.push(imgs);
+      document.getElementById(`img-${idea.id}`).innerHTML=buildImgHTML(idea.id,imgs,idea.titolo,src);
+      document.getElementById(`img-${idea.id}`).classList.add('done');
+    } catch(e) {
+      document.getElementById(`img-${idea.id}`).innerHTML=`
+        <div class="idea-title">${idea.titolo}</div>
+        <div class="loading-msg" style="color:var(--red)">Errore grafica: ${e.message}</div>
+        <button class="btn btn-sm" style="margin-top:8px" onclick="retryImg(${idea.id})">Riprova →</button>`;
+    }
+  }
+  markDone('immagini');
+}
+
+function buildImgHTML(id, imgs, titolo, src='') {
+  const srcTag=src?`<span class="src-tag src-${src}">${src==='claude'?'Claude':'Gemini'}</span>`:'';
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px">
+      <div class="idea-title">${srcTag}${titolo}</div>
+      <button class="btn btn-sm" onclick="retryImg(${id})">Rigenera</button>
+    </div>
+    <div class="img-grid">
+      <div><div class="img-lbl">Banner articolo (800×400)</div><div class="img-frame">${imgs.articleSVG||''}</div><button class="btn btn-sm" style="margin-top:7px" onclick="dlSVG('article',${id})">Scarica SVG →</button></div>
+      <div><div class="img-lbl">Post Instagram (1080×1080)</div><div class="img-frame">${imgs.instagramSVG||''}</div><button class="btn btn-sm" style="margin-top:7px" onclick="dlSVG('instagram',${id})">Scarica SVG →</button></div>
+    </div>`;
+}
+
+function buildImgManual(idea) {
+  const art=`<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg"><rect width="800" height="400" fill="#0d1b2a"/><rect x="560" y="0" width="240" height="240" fill="#3d6fff" opacity="0.12" rx="40"/><rect x="20" y="20" width="120" height="26" rx="13" fill="#3d6fff"/><text x="80" y="37" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="12" font-weight="600">${idea.categoria||'Formazione'}</text><text x="60" fill="#e8eaf0" font-family="sans-serif" font-size="26" font-weight="700"><tspan x="60" y="175">${(idea.titolo||'').substring(0,36)}</tspan>${idea.titolo&&idea.titolo.length>36?`<tspan x="60" dy="38">${idea.titolo.substring(36,72)}</tspan>`:''}</text><text x="60" y="370" fill="#555a72" font-family="sans-serif" font-size="13">praticheeformazione.it</text></svg>`;
+  const ig=`<svg viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg"><rect width="1080" height="1080" fill="#0d1b2a"/><rect width="1080" height="500" fill="#3d6fff"/><text x="540" y="280" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="80" font-weight="700" opacity="0.15">P&amp;F</text><text x="540" y="430" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="20" font-weight="600" letter-spacing="3" opacity="0.6">${(idea.categoria||'FORMAZIONE').toUpperCase()}</text><text x="540" fill="#e8eaf0" font-family="sans-serif" font-size="46" font-weight="700"><tspan x="540" y="640" text-anchor="middle">${(idea.titolo||'').substring(0,22)}</tspan>${idea.titolo&&idea.titolo.length>22?`<tspan x="540" dy="60" text-anchor="middle">${idea.titolo.substring(22,44)}</tspan>`:''}</text><text x="540" y="860" text-anchor="middle" fill="#555a72" font-family="sans-serif" font-size="26">praticheeformazione.it</text></svg>`;
+  return `<div class="card" id="img-${idea.id}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div class="idea-title">${idea.titolo}</div><span class="badge b-amber">Grafica base locale</span>
+    </div>
+    <div class="img-grid">
+      <div><div class="img-lbl">Banner articolo</div><div class="img-frame">${art}</div><button class="btn btn-sm" style="margin-top:7px" onclick="dlSVGStr(\`${art.replace(/`/g,'\\`')}\`,'banner-${idea.id}.svg')">Scarica SVG →</button></div>
+      <div><div class="img-lbl">Post Instagram</div><div class="img-frame">${ig}</div><button class="btn btn-sm" style="margin-top:7px" onclick="dlSVGStr(\`${ig.replace(/`/g,'\\`')}\`,'ig-${idea.id}.svg')">Scarica SVG →</button></div>
+    </div>
+    <div class="action-area manual-mode" style="margin-top:10px">
+      <div class="action-mode-label">Nessuna AI — grafica base generata localmente</div>
+      <div class="steps-manual">Configura Claude o Gemini nelle Impostazioni per grafiche personalizzate AI. Le grafiche sopra sono modificabili con Canva, Figma o Inkscape.</div>
+    </div>
+  </div>`;
+}
+
+async function retryImg(id) {
+  const idea=state.ideas.find(i=>i.id===id);
+  if(!idea||!hasAI()) return;
+  await genImages([idea]);
+}
+
+function dlSVG(type, id) {
+  const img=state.imgs.find(i=>i.id===id);
+  if(!img) return;
+  const svg=type==='article'?img.articleSVG:img.instagramSVG;
+  if(!svg) return;
+  dlSVGStr(svg,`${type}-${id}.svg`);
+}
+
+function dlSVGStr(svg, filename) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
+  a.download=filename; a.click();
+}
+
+loadConfig();
+</script>
+</body>
+</html>
